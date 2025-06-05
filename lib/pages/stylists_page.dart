@@ -17,26 +17,48 @@ class _StylistsPageState extends State<StylistsPage> {
     return Consumer<StylistList>(
       builder:
           (context, value, child) => Scaffold(
-            
-            body:Padding(
+            body: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Expanded(
-                  child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // 2 items per row
-                  childAspectRatio: 0.75, // Adjust this value based on your item's height/width ratio
-                  crossAxisSpacing: 10, // Horizontal spacing between items
-                  mainAxisSpacing: 10, // Vertical spacing between items
-                ),
-                    itemCount: value.stylist_list.length,
-                    itemBuilder: (context, index) {
-                      // get individual stylist
-                      Stylist currentStylist = value.getStylistList()[index];
-              
-                      return StylistItem(stylist: currentStylist);
-                    },
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, // 2 items per row
+                    childAspectRatio:
+                        0.75, // Adjust this value based on your item's height/width ratio
+                    crossAxisSpacing: 10, // Horizontal spacing between items
+                    mainAxisSpacing: 10, // Vertical spacing between items
                   ),
+                  itemCount: value.stylist_list.length,
+                  itemBuilder: (context, index) {
+                    // get individual stylist
+                    Stylist currentStylist = value.getStylistList()[index];
+
+                    return GestureDetector(
+                      child: StylistItem(stylist: currentStylist),
+                      onTap: () {
+                        showModalBottomSheet(
+                          isScrollControlled: true,
+                          context: context,
+                          builder: (BuildContext context) {
+                            return SizedBox(
+                              height: MediaQuery.of(context).size.width * 2,
+                              child: Center(
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      StylistItem(stylist: currentStylist),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
                 ),
+              ),
             ),
           ),
     );

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:stylus/auth/auth_gate.dart';
 import 'package:stylus/components/stylist_item.dart';
 import 'package:stylus/models/stylist_list.dart';
 import 'package:stylus/pages/home_page.dart';
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(create: (context) => StylistList(),
     builder: (context, child) => const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginPage(),
+      home: AuthGate(),
     ),
     );
   }

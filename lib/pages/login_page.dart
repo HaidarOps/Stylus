@@ -1,11 +1,7 @@
-import 'dart:async';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:stylus/extensions.dart';
-import 'package:stylus/main.dart';
-import 'package:stylus/pages/accounts_page.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:stylus/auth/auth_service.dart';
+import 'package:stylus/pages/home_page.dart';
+import 'package:stylus/pages/register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,91 +11,58 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  bool _isLoading = false;
-  bool _redirecting = false;
-  late final TextEditingController _emailController = TextEditingController();
-  late final StreamSubscription<AuthState> _authStateSubscription;
+  // get the auth service
+  final authService = AuthService();
 
-  Future<void> _signIn() async {
+  // text controllers
+
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  // login button pressed
+  void login() async {
+    // prepare the data
+    final email = _emailController.text;
+    final password = _passwordController.text;
+
+    //attempt to login...
     try {
-      setState(() {
-        _isLoading = true;
-      });
-      await supabase.auth.signInWithOtp(
-        email: _emailController.text.trim(),
-        emailRedirectTo:
-            kIsWeb ? null : 'io.supabase.flutterquickstart://login-callback/',
-      );
+      await authService.signInWithEmailPassword(email, password);
+      Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
+    } catch (e) {
       if (mounted) {
-        context.showSnackBar('Check your email for a login link!', message: '');
-
-        _emailController.clear();
-      }
-                
-    } on AuthException catch (error) {
-      if (mounted) context.showSnackBar(error.message, isError: true, message: '');
-    } catch (error) {
-      if (mounted) {
-        context.showSnackBar('Unexpected error occurred', isError: true, message: '');
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error: ${e}")));
       }
     }
   }
-
-  @override
-  void initState() {
-    _authStateSubscription = supabase.auth.onAuthStateChange.listen(
-      (data) {
-        if (_redirecting) return;
-        final session = data.session;
-        if (session != null) {
-          _redirecting = true;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const AccountPage()),
-          );
-        }
-      },
-      onError: (error) {
-        if (error is AuthException) {
-          context.showSnackBar(error.message, isError: true, message: '');
-        } else {
-          context.showSnackBar('Unexpected error occurred', isError: true, message: '');
-        }
-      },
-    );
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _authStateSubscription.cancel();
-    super.dispose();
-  }
-
+  // build ui
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign In')),
+      appBar: AppBar(
+        title: Text("Sign in"),
+      ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
         children: [
-          const Text('Sign in via the magic link with your email below'),
-          const SizedBox(height: 18),
-          TextFormField(
-            controller: _emailController,
-            decoration: const InputDecoration(labelText: 'Email'),
-          ),
-          const SizedBox(height: 18),
-          ElevatedButton(
-            onPressed: _isLoading ? null : _signIn,
-            child: Text(_isLoading ? 'Sending...' : 'Send Magic Link'),
-          ),
+          // email
+          TextField(controller: _emailController,),
+          
+          
+          
+          // password
+
+          TextField(controller: _passwordController,),
+
+          // button
+          ElevatedButton(onPressed: login, child: const Text("Login")),
+
+          // sign up
+
+          GestureDetector(
+            onTap:() => Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterPage())),
+            child: Center(child: Text("Don't have an account? Sign Up")))
         ],
       ),
     );
